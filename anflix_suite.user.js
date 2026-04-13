@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      3.6
+// @version      3.7
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,7 +26,7 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V3.6 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V3.7 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
@@ -40,8 +40,8 @@
     GM_addStyle(commonCSS);
 
     // 1. 확실한 광고성 키워드
-    const strongKeywords = ['유흥', '룸살롱', '안마', '휴게텔', '비아그라', '바카라', '신규가입', '섹스', '야동', '추천프로그램', '배너문의', '광고문의', '플레이어', 'kmplayer'];
-    
+    const strongKeywords = ['유흥', '룸살롱', '안마', '휴게텔', '비아그라', '바카라', '신규가입', '야동', '추천프로그램', '배너문의', '광고문의', '플레이어', 'kmplayer'];
+
     // 2. 위험한 키워드 (일반 제목과 겹칠 수 있음 -> 정규식으로 정밀 검사)
     const riskyRegex = [
         /(^|[^가-힣])토토(?![가-힣])/,
@@ -56,7 +56,7 @@
     const cleanup = () => {
         // --- [A. 정밀 키워드 필터링] ---
         const targetElements = document.querySelectorAll('li, tr, div[class*="banner"], div[class*="ad"], .notice, a[href*="/banner/"]');
-        
+
         targetElements.forEach(el => {
             // 보호해야 할 핵심 구역 (페이지 네비게이션 등) 체크
             if (el.matches('.pagination, .page, .pg, [class*="paging"], [class*="page"]')) return;
@@ -118,6 +118,40 @@
         // --- [B. 사이트별 특화 로직] ---
 
         if (isTorrent) {
+            // --- [TorrentQQ 다크 모드 스타일] ---
+            const torrentDarkCSS = `
+                body, #wrapper, #container, .content, .main, #main { background-color: #121212 !important; color: #e0e0e0 !important; }
+                .list-wrap, .list-container, .table-responsive, .list-board, table { background-color: #1a1a1a !important; border-color: #333 !important; }
+                tr, td, th { background-color: transparent !important; border-bottom: 1px solid #2a2a2a !important; color: #ccc !important; }
+                tr:hover td { background-color: #252525 !important; }
+                a { color: #58a6ff !important; text-decoration: none !important; }
+                a:hover { color: #79c0ff !important; text-decoration: underline !important; }
+                .subject, .wr-subject { color: #eee !important; font-weight: 500 !important; }
+                .list-details, .info, .text-muted { color: #888 !important; }
+                
+                /* 제목 및 헤더 */
+                h1, h2, h3, h4, .title, .widget-title, .panel-heading { color: #fff !important; background-color: #222 !important; border-bottom: 2px solid #e50914 !important; }
+                .nav-tabs > li.active > a { background-color: #e50914 !important; color: white !important; border: none !important; }
+                
+                /* 페이지네이션 */
+                .pagination a, .page a, .pg a, .pg_page { background-color: #2a2a2a !important; color: #ccc !important; border: 1px solid #444 !important; padding: 5px 12px !important; margin: 2px !important; border-radius: 4px !important; }
+                .pagination strong, .pg_current, .pagination .active a { background-color: #e50914 !important; color: white !important; border: 1px solid #e50914 !important; }
+                
+                /* 검색창 및 사이드바 */
+                input, select, textarea { background-color: #252525 !important; color: #fff !important; border: 1px solid #444 !important; border-radius: 4px !important; }
+                .sidebar-box, .widget, .panel { background-color: #1a1a1a !important; border: 1px solid #333 !important; box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important; }
+                
+                /* 캘린더 및 부수적 요소 */
+                .calendar-box, .cal_table { background-color: #1a1a1a !important; color: #ccc !important; }
+                .cal_today { background-color: #e50914 !important; color: #fff !important; border-radius: 50% !important; }
+            `;
+            if (!document.getElementById('anflix-dark-css')) {
+                const style = document.createElement('style');
+                style.id = 'anflix-dark-css';
+                style.textContent = torrentDarkCSS;
+                document.head.appendChild(style);
+            }
+
             // TorrentQQ 특화: 사이드바 위젯 통째로 제거 (추천프로그램 등)
             document.querySelectorAll('.sidebar-box, .widget, .panel, aside').forEach(box => {
                 const inner = box.innerText;
@@ -130,13 +164,13 @@
             document.querySelectorAll('a, button, span').forEach(el => {
                 const text = el.innerText.trim();
                 const href = el.href || "";
-                
+
                 // 마그넷 링크 처리
                 if (text.includes('마그넷 링크') || text.includes('즉시 감상')) {
                     el.innerText = '📲 앱에서 열기';
                     el.style.cssText = 'background-color: #e50914 !important; color: white !important; font-weight: bold !important; border: none !important; padding: 10px 20px !important; border-radius: 5px !important; box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4) !important;';
                 }
-                
+
                 // 토렌트 파일 / 다운로드 링크 처리
                 if (text.includes('토렌트 파일') || text.includes('다운로드 링크')) {
                     el.innerText = '📥 토렌트';
@@ -163,7 +197,7 @@
             document.querySelectorAll('#bannerList, .banner2, .banner_list, .banner_box, .notice, .ad-unit, a[href*="t.me/tvwiki"]').forEach(el => {
                 el.style.display = 'none';
             });
-            
+
             // 이미지/링크 정밀 분석
             document.querySelectorAll('img, a').forEach(el => {
                 const source = (el.tagName === 'IMG' ? el.src : el.href) || "";
