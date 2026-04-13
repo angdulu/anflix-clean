@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANFLIX | Premium Media Center</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+    <div id="app">
+        <!-- Background Glow -->
+        <div class="bg-glow"></div>
+        
+        <header>
+            <div class="logo" onclick="window.location.reload()" style="cursor: pointer;">ANFLIX</div>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="영화를 검색하세요 (예: 듄, 스파이더맨...)" autocomplete="off">
+                <button id="searchBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <section id="resultsSection">
+                <h2 id="sectionTitle">인기 검색 결과</h2>
+                <div id="movieGrid" class="movie-grid">
+                    <!-- Cards will be injected by app.js -->
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal for Detail -->
+        <div id="detailModal" class="modal hidden">
+            <div class="modal-content glass">
+                <button id="closeModal" class="close-btn">&times;</button>
+                <div class="modal-body">
+                    <div id="modalPoster" class="modal-poster"></div>
+                    <div class="modal-info">
+                        <h1 id="modalTitle">영화 제목</h1>
+                        <div class="meta-tags">
+                            <span id="modalQuality" class="tag quality">4K</span>
+                            <span id="modalSize" class="tag size">2.4 GB</span>
+                            <span id="modalSeeders" class="tag seeds">Seeders: 124</span>
+                        </div>
+                        <p id="modalDesc">상세 정보를 불러오는 중입니다...</p>
+                        <div class="action-buttons">
+                            <button id="getMagnetBtn" class="btn primary">마그넷 복사</button>
+                            <button id="openTorrentBtn" class="btn secondary">토렌트 열기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 ANFLIX Premium. High-performance Search Engine.</p>
+        </footer>
+    </div>
+    
+    <script src="app.js?v=4"></script>
+</body>
+</html>
