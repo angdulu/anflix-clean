@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      2.4
+// @version      2.5
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,7 +26,7 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V2.4 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V2.5 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
@@ -56,23 +56,30 @@
 
     const cleanup = () => {
         // --- [A. 정밀 키워드 필터링] ---
-        document.querySelectorAll('li, tr, div, a, span').forEach(el => {
-            // 너무 큰 컨테이너는 개별 요소들이 처리되도록 건너뜀
-            if (el.children.length > 5 && !el.classList.contains('banner_area') && !el.classList.contains('notice')) return;
-
+        // 광고 전용 구역이나 목록 아이템 위주로 스캔
+        const targetElements = document.querySelectorAll('li, tr, div[class*="banner"], div[class*="ad"], .notice, a[href*="/banner/"]');
+        
+        targetElements.forEach(el => {
             const text = el.innerText.trim().toLowerCase();
-            if (!text) return;
+            if (!text || text.length > 500) return; // 너무 긴 텍스트는 리스트가 아닐 확률이 높으므로 제외
 
             const isStrongMatch = strongKeywords.some(kw => text.includes(kw));
             const isRiskyMatch = riskyRegex.some(rx => rx.test(text));
 
             if (isStrongMatch || isRiskyMatch) {
                 // 부모 컨테이너(행 또는 광고박스)를 찾아 숨김
-                const container = el.closest('li, tr, .banner_area, .notice, [class*="banner"], .sidebar-box');
-                if (container) {
-                    container.style.display = 'none';
-                } else {
-                    el.style.display = 'none';
+                el.style.cssText = 'display:none !important;';
+            }
+        });
+
+        // 추가적인 파편 제거 (작은 span이나 div 중 광고 문구가 있는 경우)
+        document.querySelectorAll('span, b, a').forEach(el => {
+            if (el.children.length > 0) return;
+            const text = el.innerText.trim();
+            if (strongKeywords.some(kw => text.includes(kw))) {
+                const box = el.closest('div, li, tr');
+                if (box && box.innerText.length < 300) {
+                    box.style.display = 'none';
                 }
             }
         });
