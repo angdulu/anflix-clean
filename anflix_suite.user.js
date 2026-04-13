@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      2.8
+// @version      2.9
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,7 +26,7 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V2.8 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V2.9 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
@@ -71,10 +71,18 @@
 
             if (isStrongMatch || isRiskyMatch) {
                 // 부모 컨테이너(행 또는 광고박스)를 찾아 숨김
-                // 단, 숨기려는 대상이 페이지네이션을 포함하고 있으면 제외
-                if (el.querySelector('.pagination, .page, .pg, [class*="paging"]')) return;
-                
-                el.style.cssText = 'display:none !important;';
+                // 단, 페이지네이션 영역이면 부모를 숨기지 않고 해당 요소만 숨김
+                const isNavArea = el.closest('.pagination, .page, .pg, [class*="paging"]');
+                if (isNavArea) {
+                    el.style.display = 'none';
+                } else {
+                    const container = el.closest('li, tr, .banner_area, .notice, [class*="banner"], .sidebar-box');
+                    if (container) {
+                        container.style.display = 'none';
+                    } else {
+                        el.style.display = 'none';
+                    }
+                }
             }
         });
 
