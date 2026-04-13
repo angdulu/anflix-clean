@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      3.7
+// @version      3.8
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,7 +26,7 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V3.7 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V3.8 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
@@ -137,10 +137,9 @@
                     el.style.cssText = 'background-color: #e50914 !important; color: white !important; font-weight: bold !important; border: none !important; padding: 10px 20px !important; border-radius: 5px !important; box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4) !important;';
                 }
 
-                // 토렌트 파일 / 다운로드 링크 처리
+                // 토렌트 파일 / 다운로드 링크 처리 (사용자 요청에 따라 숨김)
                 if (text.includes('토렌트 파일') || text.includes('다운로드 링크')) {
-                    el.innerText = '📥 토렌트';
-                    el.style.cssText = 'background-color: #333 !important; color: #eee !important; border: 1px solid #444 !important; padding: 10px 15px !important; border-radius: 5px !important; transition: 0.2s;';
+                    el.style.display = 'none';
                 }
 
                 // 프로그램 링크 직접 차단 (qbittorrent, vuze, utorrent 등)
