@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      3.0
+// @version      3.1
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,7 +26,7 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V3.0 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V3.1 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
@@ -71,15 +71,15 @@
 
             if (isStrongMatch || isRiskyMatch) {
                 // 부모 컨테이너를 찾아 숨김
-                // 단, 페이지네이션 영역이거나 숫자만 있는 요소는 보호
-                if (el.matches('.pagination, .page, .pg, [class*="paging"]') || /^\d+$/.test(text) || text.length < 3) return;
-                
-                const isNavArea = el.closest('.pagination, .page, .pg, [class*="paging"], #paging');
-                if (isNavArea) return; // 번호판 주변은 아예 건드리지 않음
+                // 페이지네이션 영역은 무조건 보호
+                if (el.matches('.pagination, .page, .pg, [class*="paging"], #paging, [id*="paging"]')) return;
+                if (el.closest('.pagination, .page, .pg, [class*="paging"], #paging')) return;
 
                 const container = el.closest('li, tr, .banner_area, .notice, [class*="banner"], .sidebar-box, .widget, .panel');
                 if (container) {
-                    container.style.display = 'none';
+                    // 상자가 너무 크면(페이지 전체면) 제외
+                    if (container.innerText.length < 2000) container.style.display = 'none';
+                    else el.style.display = 'none';
                 } else {
                     el.style.display = 'none';
                 }
@@ -101,10 +101,18 @@
         // --- [B. 사이트별 특화 로직] ---
 
         if (isTorrent) {
-            // TorrentQQ 특화: 버튼 변환
-            // Magnet -> Open in App
+            // TorrentQQ 특화: 사이드바 위젯 통째로 제거 (추천프로그램 등)
+            document.querySelectorAll('.sidebar-box, .widget, .panel, aside').forEach(box => {
+                const inner = box.innerText;
+                if (inner.includes('추천프로그램') || inner.includes('광고문의') || inner.includes('배너문의')) {
+                    if (inner.length < 1000) box.style.display = 'none';
+                }
+            });
+
+            // 버튼 및 링크 처리
             document.querySelectorAll('a, button, span').forEach(el => {
                 const text = el.innerText.trim();
+                const href = el.href || "";
                 
                 // 마그넷 링크 처리
                 if (text.includes('마그넷 링크') || text.includes('즉시 감상')) {
@@ -117,7 +125,15 @@
                     el.innerText = '📥 토렌트';
                     el.style.cssText = 'background-color: #333 !important; color: #eee !important; border: 1px solid #444 !important; padding: 10px 15px !important; border-radius: 5px !important; transition: 0.2s;';
                 }
-                if (text.includes('다운로드로 바로가기') || text.includes('광고하세요') || text.includes('놓치지 마세요') || text.includes('추천프로그램')) {
+
+                // 프로그램 링크 직접 차단 (qbittorrent, vuze 등)
+                if (href.includes('qbittorrent.org') || href.includes('vuze.com') || href.includes('gomlab.com') || href.includes('potplayer')) {
+                    const box = el.closest('.sidebar-box, .widget, .panel, li, div');
+                    if (box && box.innerText.length < 1000) box.style.display = 'none';
+                    else el.style.display = 'none';
+                }
+
+                if (text.includes('다운로드로 바로가기') || text.includes('광고하세요') || text.includes('놓치지 마세요')) {
                     const box = el.closest('div[style*="background-color"], [style*="border"], .sidebar-box, .widget, .panel');
                     if (box) box.style.display = 'none';
                     else el.style.display = 'none';
