@@ -118,40 +118,6 @@
         // --- [B. 사이트별 특화 로직] ---
 
         if (isTorrent) {
-            // --- [TorrentQQ 다크 모드 스타일] ---
-            const torrentDarkCSS = `
-                body, #wrapper, #container, .content, .main, #main { background-color: #121212 !important; color: #e0e0e0 !important; }
-                .list-wrap, .list-container, .table-responsive, .list-board, table { background-color: #1a1a1a !important; border-color: #333 !important; }
-                tr, td, th { background-color: transparent !important; border-bottom: 1px solid #2a2a2a !important; color: #ccc !important; }
-                tr:hover td { background-color: #252525 !important; }
-                a { color: #58a6ff !important; text-decoration: none !important; }
-                a:hover { color: #79c0ff !important; text-decoration: underline !important; }
-                .subject, .wr-subject { color: #eee !important; font-weight: 500 !important; }
-                .list-details, .info, .text-muted { color: #888 !important; }
-                
-                /* 제목 및 헤더 */
-                h1, h2, h3, h4, .title, .widget-title, .panel-heading { color: #fff !important; background-color: #222 !important; border-bottom: 2px solid #e50914 !important; }
-                .nav-tabs > li.active > a { background-color: #e50914 !important; color: white !important; border: none !important; }
-                
-                /* 페이지네이션 */
-                .pagination a, .page a, .pg a, .pg_page { background-color: #2a2a2a !important; color: #ccc !important; border: 1px solid #444 !important; padding: 5px 12px !important; margin: 2px !important; border-radius: 4px !important; }
-                .pagination strong, .pg_current, .pagination .active a { background-color: #e50914 !important; color: white !important; border: 1px solid #e50914 !important; }
-                
-                /* 검색창 및 사이드바 */
-                input, select, textarea { background-color: #252525 !important; color: #fff !important; border: 1px solid #444 !important; border-radius: 4px !important; }
-                .sidebar-box, .widget, .panel { background-color: #1a1a1a !important; border: 1px solid #333 !important; box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important; }
-                
-                /* 캘린더 및 부수적 요소 */
-                .calendar-box, .cal_table { background-color: #1a1a1a !important; color: #ccc !important; }
-                .cal_today { background-color: #e50914 !important; color: #fff !important; border-radius: 50% !important; }
-            `;
-            if (!document.getElementById('anflix-dark-css')) {
-                const style = document.createElement('style');
-                style.id = 'anflix-dark-css';
-                style.textContent = torrentDarkCSS;
-                document.head.appendChild(style);
-            }
-
             // TorrentQQ 특화: 사이드바 위젯 통째로 제거 (추천프로그램 등)
             document.querySelectorAll('.sidebar-box, .widget, .panel, aside').forEach(box => {
                 const inner = box.innerText;
@@ -193,16 +159,30 @@
         }
 
         if (isTVWiki) {
-            // TVWiki 특화: 배너 리스트 차단
-            document.querySelectorAll('#bannerList, .banner2, .banner_list, .banner_box, .notice, .ad-unit, a[href*="t.me/tvwiki"]').forEach(el => {
-                el.style.display = 'none';
+            // TVWiki 특화: 각종 배너 구역 및 노티스 차단
+            const tvwikiSelectors = [
+                '#bannerList', '.banner2', '.banner_list', '.banner_box', '.banner_area',
+                '.notice', '.ad-unit', '.view-ad', '.top-banner', '.side-banner',
+                '[class*="banner-"]', '[id*="banner_"]', 'a[href*="t.me/"]',
+                '.p-3.mb-2.bg-light.text-dark' // 가끔 여기에 광고가 들어감
+            ];
+            document.querySelectorAll(tvwikiSelectors.join(',')).forEach(el => {
+                // 단, 핵심 콘텐츠(비디오 플레이어 등)는 보호
+                if (el.querySelector('video') || el.id === 'player_box') return;
+                el.style.cssText = 'display:none !important;';
             });
-
-            // 이미지/링크 정밀 분석
+            
+            // 이미지/링크 정밀 분석 (도박 사이트 등)
             document.querySelectorAll('img, a').forEach(el => {
                 const source = (el.tagName === 'IMG' ? el.src : el.href) || "";
-                if (source.includes('/data/banner/') || dangerousKeywords.some(kw => source.toLowerCase().includes(kw))) {
-                    const adContainer = el.closest('.banner_area, .sidebar_banner, [class*="banner"]');
+                const isAds = source.includes('/data/banner/') || 
+                             source.includes('/banner/') ||
+                             source.includes('casino') || 
+                             source.includes('betting') || 
+                             source.includes('slot');
+                
+                if (isAds) {
+                    const adContainer = el.closest('.banner_area, .sidebar_banner, [class*="banner"], .banner-box');
                     if (adContainer) adContainer.style.display = 'none';
                     else el.style.display = 'none';
                 }
