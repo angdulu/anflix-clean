@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      2.2
+// @version      2.3
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,7 +26,7 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V2.2 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V2.3 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
@@ -39,24 +39,32 @@
     `;
     GM_addStyle(commonCSS);
 
-    const dangerousKeywords = ['성인', '유흥', '오피', '룸살롱', '안마', '휴게텔', '비아그라', '카지노', '신규가입', '바카라', '토토', '슬롯'];
+    const dangerousKeywords = ['성인', '유흥', '오피', '룸살롱', '안마', '휴게텔', '비아그라', '시알리스', '헬로밤', '카지노', '신규가입', '바카라', '토토', '슬롯'];
     const sensitiveRegex = /\bav\b|\[av\]/i;
 
     const cleanup = () => {
         // --- [A. 공통 키워드 필터링] ---
-        // 텍스트 기반 차단 (li, tr, div, a 등)
-        document.querySelectorAll('li, tr, div, a, span').forEach(el => {
-            if (el.children.length > 5 && !el.classList.contains('banner_area')) return; // 너무 큰 컨테이너는 개별요소로 판단
+        // 텍스트 및 주소(href, src) 기반 차단
+        document.querySelectorAll('li, tr, div, a, span, img').forEach(el => {
+            const text = el.innerText ? el.innerText.trim().toLowerCase() : "";
+            const href = el.href ? el.href.toLowerCase() : "";
+            const src = el.src ? el.src.toLowerCase() : "";
             
-            const text = el.innerText.trim().toLowerCase();
-            const hasBadKeyword = dangerousKeywords.some(kw => text.includes(kw));
-            const hasAV = sensitiveRegex.test(text);
+            const hasBadKeyword = dangerousKeywords.some(kw => 
+                text.includes(kw) || href.includes(kw) || src.includes(kw)
+            );
+            const hasAV = sensitiveRegex.test(text) || sensitiveRegex.test(href);
 
             if (hasBadKeyword || hasAV || text.includes('19금')) {
-                // 부모가 배너 그리드인 경우 그 요소를 통째로 숨김
-                const container = el.closest('li, tr, .banner_area, .notice, [class*="banner"]');
-                if (container) container.style.display = 'none';
-                else el.style.display = 'none';
+                // 부모 컨테이너 찾기
+                const container = el.closest('li, tr, .banner_area, .notice, [class*="banner"], [id*="banner"], .video_ad');
+                if (container) {
+                    container.style.display = 'none';
+                    container.style.height = '0';
+                    container.style.overflow = 'hidden';
+                } else {
+                    el.style.display = 'none';
+                }
             }
         });
 
