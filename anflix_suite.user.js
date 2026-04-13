@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      3.2
+// @version      3.3
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,7 +26,7 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V3.2 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V3.3 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
@@ -74,6 +74,14 @@
                 // 페이지네이션 영역은 무조건 보호
                 if (el.matches('.pagination, .page, .pg, [class*="paging"], #paging, [id*="paging"]')) return;
                 if (el.closest('.pagination, .page, .pg, [class*="paging"], #paging')) return;
+
+                // 네비게이션 메인 메뉴인 경우 해당 항목(li/a)만 숨김
+                const isMenu = el.closest('nav, .navbar, .menu, #gnb, .nav');
+                if (isMenu) {
+                    const item = el.closest('li, a');
+                    if (item) item.style.display = 'none';
+                    return;
+                }
 
                 const container = el.closest('li, tr, .banner_area, .notice, [class*="banner"], .sidebar-box, .widget, .panel');
                 if (container) {
