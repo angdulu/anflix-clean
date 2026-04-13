@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      2.9
+// @version      3.0
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,7 +26,7 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V2.9 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V3.0 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
@@ -39,8 +39,8 @@
     `;
     GM_addStyle(commonCSS);
 
-    // 1. 확실한 광고성 키워드 (제목에 들어갈 일이 거의 없음)
-    const strongKeywords = ['유흥', '룸살롱', '안마', '휴게텔', '비아그라', '바카라', '신규가입', '섹스', '야동'];
+    // 1. 확실한 광고성 키워드
+    const strongKeywords = ['유흥', '룸살롱', '안마', '휴게텔', '비아그라', '바카라', '신규가입', '섹스', '야동', '추천프로그램', '배너문의', '광고문의'];
     
     // 2. 위험한 키워드 (일반 제목과 겹칠 수 있음 -> 정규식으로 정밀 검사)
     // 오피(오피스 방지), 토토(토토로 방지), 카지노(드라마 방지), 슬롯, 성인
@@ -70,18 +70,18 @@
             const isRiskyMatch = riskyRegex.some(rx => rx.test(text));
 
             if (isStrongMatch || isRiskyMatch) {
-                // 부모 컨테이너(행 또는 광고박스)를 찾아 숨김
-                // 단, 페이지네이션 영역이면 부모를 숨기지 않고 해당 요소만 숨김
-                const isNavArea = el.closest('.pagination, .page, .pg, [class*="paging"]');
-                if (isNavArea) {
-                    el.style.display = 'none';
+                // 부모 컨테이너를 찾아 숨김
+                // 단, 페이지네이션 영역이거나 숫자만 있는 요소는 보호
+                if (el.matches('.pagination, .page, .pg, [class*="paging"]') || /^\d+$/.test(text) || text.length < 3) return;
+                
+                const isNavArea = el.closest('.pagination, .page, .pg, [class*="paging"], #paging');
+                if (isNavArea) return; // 번호판 주변은 아예 건드리지 않음
+
+                const container = el.closest('li, tr, .banner_area, .notice, [class*="banner"], .sidebar-box, .widget, .panel');
+                if (container) {
+                    container.style.display = 'none';
                 } else {
-                    const container = el.closest('li, tr, .banner_area, .notice, [class*="banner"], .sidebar-box');
-                    if (container) {
-                        container.style.display = 'none';
-                    } else {
-                        el.style.display = 'none';
-                    }
+                    el.style.display = 'none';
                 }
             }
         });
