@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      3.5
+// @version      3.6
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,7 +26,7 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V3.4 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V3.6 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
@@ -43,20 +43,18 @@
     const strongKeywords = ['유흥', '룸살롱', '안마', '휴게텔', '비아그라', '바카라', '신규가입', '섹스', '야동', '추천프로그램', '배너문의', '광고문의', '플레이어', 'kmplayer'];
     
     // 2. 위험한 키워드 (일반 제목과 겹칠 수 있음 -> 정규식으로 정밀 검사)
-    // 오피(오피스 방지), 토토(토토로 방지), 카지노(드라마 방지), 슬롯, 성인
     const riskyRegex = [
         /(^|[^가-힣])토토(?![가-힣])/,
         /(^|[^가-힣])오피(?![가-힣])/,
         /(^|[^가-힣])카지노(?![가-힣])/,
         /(^|[^가-힣])슬롯(?![가-힣])/,
-        /(^|[^가-힣])성인(?![가-힣])/,
-        /\bav\b|\[av\]/i,
-        /19금/
+        /\bav\b|\[av\]/i
     ];
+
+    const contentRatingRegex = [/성인/, /19금/];
 
     const cleanup = () => {
         // --- [A. 정밀 키워드 필터링] ---
-        // 광고 전용 구역이나 목록 아이템 위주로 스캔
         const targetElements = document.querySelectorAll('li, tr, div[class*="banner"], div[class*="ad"], .notice, a[href*="/banner/"]');
         
         targetElements.forEach(el => {
@@ -68,28 +66,39 @@
 
             const isStrongMatch = strongKeywords.some(kw => text.includes(kw));
             const isRiskyMatch = riskyRegex.some(rx => rx.test(text));
+            const isRatingMatch = contentRatingRegex.some(rx => rx.test(text));
 
-            if (isStrongMatch || isRiskyMatch) {
+            if (isStrongMatch || isRiskyMatch || isRatingMatch) {
                 // 부모 컨테이너를 찾아 숨김
-                // 페이지네이션 영역은 무조건 보호
                 if (el.matches('.pagination, .page, .pg, [class*="paging"], #paging, [id*="paging"]')) return;
                 if (el.closest('.pagination, .page, .pg, [class*="paging"], #paging')) return;
 
-                // 네비게이션 메인 메뉴인 경우 해당 항목(li/a)만 숨김
-                const isMenu = el.closest('nav, .navbar, .menu, #gnb, .nav');
-                if (isMenu) {
-                    const item = el.closest('li, a');
-                    if (item) item.style.display = 'none';
+                const isMainList = el.closest('li, tr');
+                const isAdArea = el.closest('.banner_area, .notice, [class*="banner"], .sidebar-box, .widget, .panel');
+
+                // 1. 확실한 광고 단어면 어디든 차단
+                if (isStrongMatch) {
+                    if (isMainList) isMainList.style.display = 'none';
+                    else if (isAdArea) isAdArea.style.display = 'none';
+                    else el.style.display = 'none';
                     return;
                 }
 
-                const container = el.closest('li, tr, .banner_area, .notice, [class*="banner"], .sidebar-box, .widget, .panel');
-                if (container) {
-                    // 상자가 너무 크면(페이지 전체면) 제외
-                    if (container.innerText.length < 2000) container.style.display = 'none';
-                    else el.style.display = 'none';
-                } else {
-                    el.style.display = 'none';
+                // 2. 등급 관련 단어(성인, 19금)는 광고 영역에서만 차단
+                if (isRatingMatch) {
+                    if (isAdArea) isAdArea.style.display = 'none';
+                    return; // 리스트에서는 살려둠
+                }
+
+                // 3. 위험 단어도 상자 크기 봐가면서 차단
+                if (isRiskyMatch) {
+                    const container = isMainList || isAdArea;
+                    if (container) {
+                        if (container.innerText.length < 2000) container.style.display = 'none';
+                        else el.style.display = 'none';
+                    } else {
+                        el.style.display = 'none';
+                    }
                 }
             }
         });
