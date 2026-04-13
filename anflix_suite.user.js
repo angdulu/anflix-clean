@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      3.3
+// @version      3.4
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,7 +26,7 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V3.3 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V3.4 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
@@ -45,11 +45,11 @@
     // 2. 위험한 키워드 (일반 제목과 겹칠 수 있음 -> 정규식으로 정밀 검사)
     // 오피(오피스 방지), 토토(토토로 방지), 카지노(드라마 방지), 슬롯, 성인
     const riskyRegex = [
-        /\b토토\b|\[토토\]|^토토$/,
-        /\b오피\b|\[오피\]|^오피$/,
-        /\b카지노\b|\[카지노\]|^카지노$/,
-        /\b슬롯\b|\[슬롯\]|^슬롯$/,
-        /\b성인\b|\[성인\]|^성인$/,
+        /(^|[^가-힣])토토(?![가-힣])/,
+        /(^|[^가-힣])오피(?![가-힣])/,
+        /(^|[^가-힣])카지노(?![가-힣])/,
+        /(^|[^가-힣])슬롯(?![가-힣])/,
+        /(^|[^가-힣])성인(?![가-힣])/,
         /\bav\b|\[av\]/i,
         /19금/
     ];
