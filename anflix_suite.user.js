@@ -30,7 +30,7 @@
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
-        [href*="/ads/"], [href*="modooav"], [href*="avgosu"], [href*="casino"], [style*="viagra"],
+        [href*="/ads/"], [href*="/banner/"], [href*="modooav"], [href*="avgosu"], [href*="casino"], [style*="viagra"],
         [href*="adult"], [href*="sex"], [href*="pfizer"], [href*="op"], [href*="sexy"],
         .fa-19, .badge-19 {
             display: none !important;
@@ -39,32 +39,24 @@
     `;
     GM_addStyle(commonCSS);
 
-    const dangerousKeywords = ['성인', '유흥', '오피', '룸살롱', '안마', '휴게텔', '비아그라', '시알리스', '헬로밤', '카지노', '신규가입', '바카라', '토토', '슬롯'];
+    const dangerousKeywords = ['성인', '유흥', '오피', '룸살롱', '안마', '휴게텔', '비아그라', '카지노', '신규가입', '바카라', '토토', '슬롯'];
     const sensitiveRegex = /\bav\b|\[av\]/i;
 
     const cleanup = () => {
         // --- [A. 공통 키워드 필터링] ---
-        // 텍스트 및 주소(href, src) 기반 차단
-        document.querySelectorAll('li, tr, div, a, span, img').forEach(el => {
-            const text = el.innerText ? el.innerText.trim().toLowerCase() : "";
-            const href = el.href ? el.href.toLowerCase() : "";
-            const src = el.src ? el.src.toLowerCase() : "";
+        // 텍스트 기반 차단 (li, tr, div, a 등)
+        document.querySelectorAll('li, tr, div, a, span').forEach(el => {
+            if (el.children.length > 5 && !el.classList.contains('banner_area')) return; // 너무 큰 컨테이너는 개별요소로 판단
             
-            const hasBadKeyword = dangerousKeywords.some(kw => 
-                text.includes(kw) || href.includes(kw) || src.includes(kw)
-            );
-            const hasAV = sensitiveRegex.test(text) || sensitiveRegex.test(href);
+            const text = el.innerText.trim().toLowerCase();
+            const hasBadKeyword = dangerousKeywords.some(kw => text.includes(kw));
+            const hasAV = sensitiveRegex.test(text);
 
             if (hasBadKeyword || hasAV || text.includes('19금')) {
-                // 부모 컨테이너 찾기
-                const container = el.closest('li, tr, .banner_area, .notice, [class*="banner"], [id*="banner"], .video_ad');
-                if (container) {
-                    container.style.display = 'none';
-                    container.style.height = '0';
-                    container.style.overflow = 'hidden';
-                } else {
-                    el.style.display = 'none';
-                }
+                // 부모가 배너 그리드인 경우 그 요소를 통째로 숨김
+                const container = el.closest('li, tr, .banner_area, .notice, [class*="banner"]');
+                if (container) container.style.display = 'none';
+                else el.style.display = 'none';
             }
         });
 
