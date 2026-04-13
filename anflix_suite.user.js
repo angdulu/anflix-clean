@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      3.4
+// @version      3.5
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -134,8 +134,8 @@
                     el.style.cssText = 'background-color: #333 !important; color: #eee !important; border: 1px solid #444 !important; padding: 10px 15px !important; border-radius: 5px !important; transition: 0.2s;';
                 }
 
-                // 프로그램 링크 직접 차단 (qbittorrent, vuze 등)
-                if (href.includes('qbittorrent') || href.includes('vuze') || href.includes('gomlab') || href.includes('potplayer') || href.includes('kmplayer')) {
+                // 프로그램 링크 직접 차단 (qbittorrent, vuze, utorrent 등)
+                if (href.includes('qbittorrent') || href.includes('vuze') || href.includes('gomlab') || href.includes('potplayer') || href.includes('kmplayer') || href.includes('utorrent')) {
                     const box = el.closest('.sidebar-box, .widget, .panel, li, div');
                     if (box && box.innerText.length < 1000) box.style.display = 'none';
                     else el.style.display = 'none';
