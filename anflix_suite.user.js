@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      3.1
+// @version      3.2
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,12 +26,12 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V3.1 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V3.2 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
         [href*="/ads/"], [href*="/banner/"], [href*="modooav"], [href*="avgosu"], [href*="casino"], [style*="viagra"],
-        [href*="adult"], [href*="sex"], [href*="pfizer"], [href*="op"], [href*="sexy"],
+        [href*="adult"], [href*="sex"], [href*="pfizer"], [href*="op-"], [href*="sexy"],
         .fa-19, .badge-19 {
             display: none !important;
             visibility: hidden !important;
@@ -40,7 +40,7 @@
     GM_addStyle(commonCSS);
 
     // 1. 확실한 광고성 키워드
-    const strongKeywords = ['유흥', '룸살롱', '안마', '휴게텔', '비아그라', '바카라', '신규가입', '섹스', '야동', '추천프로그램', '배너문의', '광고문의'];
+    const strongKeywords = ['유흥', '룸살롱', '안마', '휴게텔', '비아그라', '바카라', '신규가입', '섹스', '야동', '추천프로그램', '배너문의', '광고문의', '플레이어', 'kmplayer'];
     
     // 2. 위험한 키워드 (일반 제목과 겹칠 수 있음 -> 정규식으로 정밀 검사)
     // 오피(오피스 방지), 토토(토토로 방지), 카지노(드라마 방지), 슬롯, 성인
@@ -127,7 +127,7 @@
                 }
 
                 // 프로그램 링크 직접 차단 (qbittorrent, vuze 등)
-                if (href.includes('qbittorrent.org') || href.includes('vuze.com') || href.includes('gomlab.com') || href.includes('potplayer')) {
+                if (href.includes('qbittorrent') || href.includes('vuze') || href.includes('gomlab') || href.includes('potplayer') || href.includes('kmplayer')) {
                     const box = el.closest('.sidebar-box, .widget, .panel, li, div');
                     if (box && box.innerText.length < 1000) box.style.display = 'none';
                     else el.style.display = 'none';
