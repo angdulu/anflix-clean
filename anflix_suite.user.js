@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      2.5
+// @version      2.6
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -26,7 +26,7 @@
 
     if (!isTorrent && !isTVWiki && !isSend2Video) return;
 
-    console.log(`🛡️ ANFLIX Safe Skin V2.5 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
+    console.log(`🛡️ ANFLIX Safe Skin V2.6 Loaded (${isTorrent ? 'TORRENT' : isTVWiki ? 'TVWIKI' : 'SEND2VIDEO'})`);
 
     // --- [1. 공통 보안/차단 스타일] ---
     const commonCSS = `
@@ -88,15 +88,20 @@
 
         if (isTorrent) {
             // TorrentQQ 특화: 버튼 변환
+            // Magnet -> Open in App
             document.querySelectorAll('a, button, span').forEach(el => {
                 const text = el.innerText.trim();
-                if (text.includes('마그넷 링크')) {
-                    el.innerText = '🚀 즉시 감상';
+                
+                // 마그넷 링크 처리
+                if (text.includes('마그넷 링크') || text.includes('즉시 감상')) {
+                    el.innerText = '📲 앱에서 열기';
                     el.style.cssText = 'background-color: #e50914 !important; color: white !important; font-weight: bold !important; border: none !important; padding: 10px 20px !important; border-radius: 5px !important; box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4) !important;';
                 }
-                if (text === '토렌트 파일') {
-                    el.innerText = '💾 파일 저장';
-                    el.style.cssText = 'background-color: #333 !important; color: #aaa !important; border: 1px solid #444 !important; padding: 10px 15px !important; border-radius: 5px !important; transition: 0.2s;';
+                
+                // 토렌트 파일 / 다운로드 링크 처리
+                if (text.includes('토렌트 파일') || text.includes('다운로드 링크')) {
+                    el.innerText = '📥 토렌트';
+                    el.style.cssText = 'background-color: #333 !important; color: #eee !important; border: 1px solid #444 !important; padding: 10px 15px !important; border-radius: 5px !important; transition: 0.2s;';
                 }
                 if (text.includes('다운로드로 바로가기') || text.includes('광고하세요') || text.includes('놓치지 마세요')) {
                     const box = el.closest('div[style*="background-color"], [style*="border"], .sidebar-box, .widget');
