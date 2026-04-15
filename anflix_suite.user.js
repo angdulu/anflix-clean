@@ -53,30 +53,38 @@
 
     const contentRatingRegex = [/성인/, /19금/];
 
+    // --- [최적화: 디바운스 함수] ---
+    const debounce = (func, delay) => {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+    };
+
     const cleanup = () => {
         // --- [A. 정밀 키워드 필터링] ---
+        // 쿼리 범위를 좁히거나 탐색 최적화
         const targetElements = document.querySelectorAll('li, tr, div[class*="banner"], div[class*="ad"], .notice, a[href*="/banner/"]');
 
         targetElements.forEach(el => {
-            // 보호해야 할 핵심 구역 (페이지 네비게이션 등) 체크
             if (el.matches('.pagination, .page, .pg, [class*="paging"], [class*="page"]')) return;
 
-            const text = el.innerText.trim().toLowerCase();
-            if (!text || text.length > 500) return; // 너무 긴 텍스트는 리스트가 아닐 확률이 높으므로 제외
+            // innerText 대신 textContent를 사용하여 레이아웃 계산(Reflow) 방지 (속도 향상)
+            const text = (el.textContent || "").trim().toLowerCase();
+            if (!text || text.length > 500) return;
 
             const isStrongMatch = strongKeywords.some(kw => text.includes(kw));
             const isRiskyMatch = riskyRegex.some(rx => rx.test(text));
             const isRatingMatch = contentRatingRegex.some(rx => rx.test(text));
 
             if (isStrongMatch || isRiskyMatch || isRatingMatch) {
-                // 부모 컨테이너를 찾아 숨김
                 if (el.matches('.pagination, .page, .pg, [class*="paging"], #paging, [id*="paging"]')) return;
                 if (el.closest('.pagination, .page, .pg, [class*="paging"], #paging')) return;
 
                 const isMainList = el.closest('li, tr');
                 const isAdArea = el.closest('.banner_area, .notice, [class*="banner"], .sidebar-box, .widget, .panel');
 
-                // 1. 확실한 광고 단어면 어디든 차단
                 if (isStrongMatch) {
                     if (isMainList) isMainList.style.display = 'none';
                     else if (isAdArea) isAdArea.style.display = 'none';
@@ -84,17 +92,15 @@
                     return;
                 }
 
-                // 2. 등급 관련 단어(성인, 19금)는 광고 영역에서만 차단
                 if (isRatingMatch) {
                     if (isAdArea) isAdArea.style.display = 'none';
-                    return; // 리스트에서는 살려둠
+                    return;
                 }
 
-                // 3. 위험 단어도 상자 크기 봐가면서 차단
                 if (isRiskyMatch) {
                     const container = isMainList || isAdArea;
                     if (container) {
-                        if (container.innerText.length < 2000) container.style.display = 'none';
+                        if (container.textContent.length < 2000) container.style.display = 'none';
                         else el.style.display = 'none';
                     } else {
                         el.style.display = 'none';
@@ -103,49 +109,43 @@
             }
         });
 
-        // 추가적인 파편 제거 (작은 span이나 div 중 광고 문구가 있는 경우)
+        // 추가적인 파편 제거
         document.querySelectorAll('span, b, a').forEach(el => {
             if (el.children.length > 0) return;
-            const text = el.innerText.trim();
+            const text = (el.textContent || "").trim();
             if (strongKeywords.some(kw => text.includes(kw))) {
                 const box = el.closest('div, li, tr');
-                if (box && box.innerText.length < 300) {
+                if (box && (box.textContent || "").length < 300) {
                     box.style.display = 'none';
                 }
             }
         });
 
         // --- [B. 사이트별 특화 로직] ---
-
         if (isTorrent) {
-            // TorrentQQ 특화: 사이드바 위젯 통째로 제거 (추천프로그램 등)
             document.querySelectorAll('.sidebar-box, .widget, .panel, aside').forEach(box => {
-                const inner = box.innerText;
-                if (inner.includes('추천프로그램') || inner.includes('광고문의') || inner.includes('배너문의')) {
-                    if (inner.length < 1000) box.style.display = 'none';
+                const innerText = box.textContent || "";
+                if (innerText.includes('추천프로그램') || innerText.includes('광고문의') || innerText.includes('배너문의')) {
+                    if (innerText.length < 1000) box.style.display = 'none';
                 }
             });
 
-            // 버튼 및 링크 처리
             document.querySelectorAll('a, button, span').forEach(el => {
-                const text = el.innerText.trim();
+                const text = (el.textContent || "").trim();
                 const href = el.href || "";
 
-                // 마그넷 링크 처리
                 if (text.includes('마그넷 링크') || text.includes('즉시 감상')) {
                     el.innerText = '📲 앱에서 열기';
                     el.style.cssText = 'background-color: #e50914 !important; color: white !important; font-weight: bold !important; border: none !important; padding: 10px 20px !important; border-radius: 5px !important; box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4) !important;';
                 }
 
-                // 토렌트 파일 / 다운로드 링크 처리 (사용자 요청에 따라 숨김)
                 if (text.includes('토렌트 파일') || text.includes('다운로드 링크')) {
                     el.style.display = 'none';
                 }
 
-                // 프로그램 링크 직접 차단 (qbittorrent, vuze, utorrent 등)
                 if (href.includes('qbittorrent') || href.includes('vuze') || href.includes('gomlab') || href.includes('potplayer') || href.includes('kmplayer') || href.includes('utorrent')) {
                     const box = el.closest('.sidebar-box, .widget, .panel, li, div');
-                    if (box && box.innerText.length < 1000) box.style.display = 'none';
+                    if (box && (box.textContent || "").length < 1000) box.style.display = 'none';
                     else el.style.display = 'none';
                 }
 
@@ -158,29 +158,20 @@
         }
 
         if (isTVWiki) {
-            // TVWiki 특화: 각종 배너 구역 및 노티스 차단
             const tvwikiSelectors = [
                 '#bannerList', '.banner2', '.banner_list', '.banner_box', '.banner_area',
                 '.notice', '.ad-unit', '.view-ad', '.top-banner', '.side-banner',
                 '[class*="banner-"]', '[id*="banner_"]', 'a[href*="t.me/"]',
-                '.p-3.mb-2.bg-light.text-dark' // 가끔 여기에 광고가 들어감
+                '.p-3.mb-2.bg-light.text-dark'
             ];
             document.querySelectorAll(tvwikiSelectors.join(',')).forEach(el => {
-                // 단, 핵심 콘텐츠(비디오 플레이어 등)는 보호
                 if (el.querySelector('video') || el.id === 'player_box') return;
                 el.style.cssText = 'display:none !important;';
             });
             
-            // 이미지/링크 정밀 분석 (도박 사이트 등)
             document.querySelectorAll('img, a').forEach(el => {
                 const source = (el.tagName === 'IMG' ? el.src : el.href) || "";
-                const isAds = source.includes('/data/banner/') || 
-                             source.includes('/banner/') ||
-                             source.includes('casino') || 
-                             source.includes('betting') || 
-                             source.includes('slot');
-                
-                if (isAds) {
+                if (source.includes('/data/banner/') || source.includes('/banner/') || source.includes('casino') || source.includes('betting') || source.includes('slot')) {
                     const adContainer = el.closest('.banner_area, .sidebar_banner, [class*="banner"], .banner-box');
                     if (adContainer) adContainer.style.display = 'none';
                     else el.style.display = 'none';
@@ -189,16 +180,25 @@
         }
     };
 
-    // --- [3. 실행 및 감시] ---
-    const observer = new MutationObserver(cleanup);
+    // --- [3. 실행 및 감시 (최적화)] ---
+    const debouncedCleanup = debounce(cleanup, 150);
+    const observer = new MutationObserver(() => debouncedCleanup());
+
     const start = () => {
         if (document.body) {
             cleanup();
             observer.observe(document.body, { childList: true, subtree: true });
         } else {
-            setTimeout(start, 50);
+            // body가 로드될 때까지 대기 (MutationObserver 사용)
+            const bodyObserver = new MutationObserver(() => {
+                if (document.body) {
+                    cleanup();
+                    observer.observe(document.body, { childList: true, subtree: true });
+                    bodyObserver.disconnect();
+                }
+            });
+            bodyObserver.observe(document.documentElement, { childList: true });
         }
     };
     start();
-    setInterval(cleanup, 1000);
 })();
