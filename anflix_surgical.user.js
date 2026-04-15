@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX Surgical Clean
 // @namespace    http://anflix.com/
-// @version      1.1
+// @version      1.2
 // @description  AdGuard Premium과 함께 사용하는 맞춤형 요소 제거 스크립트. 사용자가 Inspect한 특정 요소만 정밀 타겟팅하여 제거합니다.
 // @author       ANFLIX
 // @match        *://torrentq*.com/*
@@ -34,7 +34,6 @@
         'a[href*="uuoobe.com"]',
         'a[href*="/dmca.html"]',
         'a[href*="adult-film"]',
-        'a[onclick*="downloadApp"]', // 티비위키 앱 다운로드 버튼
         '.at-banner',          // 상단 배너 컨테이너
         '.row-banner',         // 배너 줄
         '.site_top',           // 배너 개별 항목
@@ -65,7 +64,6 @@
         '광고문의',
         '1:1문의',
         'DMCA',
-        'APP다운로드',
     ];
 
     // --- 실행 로직 ---
