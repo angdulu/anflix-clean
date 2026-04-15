@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ANFLIX All-in-One Clean Mode
 // @namespace    http://anflix.com/
-// @version      3.8
+// @version      3.9
 // @description  국내 토렌트 및 미디어 사이트(TorrentQQ, TVWIKI, Send2Video 등)의 광고를 제거하고 최적화합니다.
 // @author       ANFLIX Core
 // @match        *://torrentq*.com/*
@@ -168,7 +168,7 @@
                 if (el.querySelector('video') || el.id === 'player_box') return;
                 el.style.cssText = 'display:none !important;';
             });
-            
+
             document.querySelectorAll('img, a').forEach(el => {
                 const source = (el.tagName === 'IMG' ? el.src : el.href) || "";
                 if (source.includes('/data/banner/') || source.includes('/banner/') || source.includes('casino') || source.includes('betting') || source.includes('slot')) {
