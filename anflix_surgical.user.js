@@ -10,6 +10,7 @@
 // @match        *://tvwiki*.org/*
 // @match        *://tvw.la/*
 // @match        *://send2video.com/*
+// @match        *://www.raffitokatlian.com/address*
 // @match        *://*/*
 // @updateURL    https://raw.githubusercontent.com/angdulu/anflix-clean/main/anflix_surgical.user.js
 // @downloadURL  https://raw.githubusercontent.com/angdulu/anflix-clean/main/anflix_surgical.user.js
@@ -108,6 +109,40 @@
             }
         });
         bodyObserver.observe(document.documentElement, { childList: true });
+    }
+
+    // 3. 사이트별 특수 처리
+    if (location.href.includes('raffitokatlian.com/address')) {
+        GM_addStyle(`
+            /* 1. 페이지 배경 정리 */
+            body { 
+                background-color: #121212 !important; 
+                overflow: hidden !important; 
+            }
+            /* 2. 모든 요소를 가림 (공간은 유지하되 투명하게) */
+            body * {
+                visibility: hidden !important;
+            }
+            /* 3. 티비위키 주소 버튼과 그 내부 요소들만 보이게 설정 */
+            #comp-midqdyc6, #comp-midqdyc6 * {
+                visibility: visible !important;
+            }
+            /* 4. 버튼을 화면 중앙에 고정 배치 */
+            #comp-midqdyc6 {
+                position: fixed !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                z-index: 999999 !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+            }
+            /* 5. Wix 광고 및 배너 완전 제거 */
+            [id^="WIX_ADS"], [class*="WixFreeSiteBanner"], #WIX_ADS {
+                display: none !important;
+            }
+        `);
     }
 
     console.log('🛡️ ANFLIX Surgical Clean Loaded. CSS:', targets.length, '| Text:', textTargets.length);
